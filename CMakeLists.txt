@@ -42,12 +42,15 @@ if(BUILD_TESTS)
     target_link_libraries(banking_test PRIVATE
         banking
         gtest_main
+        gmock_main
         trompeloeil
     )
     
     target_include_directories(banking_test PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${trompeloeil_SOURCE_DIR}/include
+        ${gtest_SOURCE_DIR}/googlemock/include
+        ${gtest_SOURCE_DIR}/googletest/include
     )
     
     add_test(NAME banking_test COMMAND banking_test)
