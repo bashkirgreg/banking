@@ -30,7 +30,7 @@ jobs:
       run: |
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_account.cpp' '*/test_transaction.cpp' --output-file coverage.info --ignore-errors unused
+        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_account.cpp' '*/test_transaction.cpp' '*/Account.h' '*/Transaction.h' --output-file coverage.info --ignore-errors unused
         lcov --remove coverage.info '*/CMakeFiles/*' '*/CompilerIdCXX/*' '*/CompilerIdC/*' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
@@ -41,6 +41,6 @@ jobs:
         touch build/CMakeFiles/3.31.6/CompilerIdC/CMakeCCompilerId.c
         touch build/CMakeCXXCompilerId.cpp
         touch build/CMakeCCompilerId.c
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include
+        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include --exclude '*.gcda' --exclude '*.gcno'
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
