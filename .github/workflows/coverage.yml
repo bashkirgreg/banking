@@ -32,7 +32,6 @@ jobs:
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
         lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_*' --output-file coverage.info --ignore-errors unused
-        # Удаляем проблемные файлы
         find . -name "*.gcda" -exec rm -f {} \;
         find . -name "*.gcno" -exec rm -f {} \;
         rm -rf CMakeFiles
