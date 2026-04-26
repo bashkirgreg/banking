@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <trompeloeil.hpp>
 #include "Transaction.h"
 #include "Account.h"
