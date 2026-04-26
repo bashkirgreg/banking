@@ -74,7 +74,7 @@ TEST(TransactionTest, MakeSuccessWithEnoughBalance) {
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN();
+    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_));
     
     t.set_fee(1);
     EXPECT_TRUE(t.Make(from, to, 200));
@@ -97,7 +97,7 @@ TEST(TransactionTest, MakeFailsWhenNotEnoughBalance) {
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN();
+    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_));
     
     t.set_fee(1);
     EXPECT_FALSE(t.Make(from, to, 200));
