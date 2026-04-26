@@ -11,7 +11,7 @@ public:
     MAKE_MOCK1(ChangeBalance, void(int), override);
     MAKE_MOCK0(Lock, void(), override);
     MAKE_MOCK0(Unlock, void(), override);
-    MAKE_MOCK0(id, int(), const override);
+    MAKE_MOCK0(GetId, int());
 };
 
 class TestableTransaction : public Transaction {
@@ -19,39 +19,40 @@ public:
     using Transaction::Transaction;
     
     MAKE_MOCK3(SaveToDataBase, void(Account&, Account&, int), override);
-    
-    // Делаем private методы доступными для тестирования
-    using Transaction::Credit;
-    using Transaction::Debit;
 };
+
+template<typename Mock>
+void SetupId(Mock& mock, int id) {
+    ALLOW_CALL(mock, GetId()).RETURN(id);
+}
 
 TEST(TransactionTest, MakeThrowsWhenSameAccount) {
     MockAccount acc(1, 100);
-    ALLOW_CALL(acc, id()).RETURN(1);
+    SetupId(acc, 1);
     EXPECT_THROW(Transaction().Make(acc, acc, 200), std::logic_error);
 }
 
 TEST(TransactionTest, MakeThrowsWhenNegativeSum) {
     MockAccount from(1, 100);
     MockAccount to(2, 50);
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     EXPECT_THROW(Transaction().Make(from, to, -50), std::invalid_argument);
 }
 
 TEST(TransactionTest, MakeThrowsWhenSumLessThan100) {
     MockAccount from(1, 100);
     MockAccount to(2, 50);
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     EXPECT_THROW(Transaction().Make(from, to, 99), std::logic_error);
 }
 
 TEST(TransactionTest, MakeReturnsFalseWhenFeeTooHigh) {
     MockAccount from(1, 100);
     MockAccount to(2, 50);
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     Transaction t;
     t.set_fee(60);
     EXPECT_FALSE(t.Make(from, to, 100));
@@ -61,8 +62,8 @@ TEST(TransactionTest, MakeSuccessWithEnoughBalance) {
     MockAccount from(1, 1000);
     MockAccount to(2, 500);
     
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     
     REQUIRE_CALL(from, Lock());
     REQUIRE_CALL(to, Lock());
@@ -83,8 +84,8 @@ TEST(TransactionTest, MakeFailsWhenNotEnoughBalance) {
     MockAccount from(1, 100);
     MockAccount to(2, 50);
     
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     
     REQUIRE_CALL(from, Lock());
     REQUIRE_CALL(to, Lock());
@@ -105,8 +106,8 @@ TEST(TransactionTest, SaveToDataBaseIsCalled) {
     MockAccount to(2, 500);
     TestableTransaction t;
     
-    ALLOW_CALL(from, id()).RETURN(1);
-    ALLOW_CALL(to, id()).RETURN(2);
+    SetupId(from, 1);
+    SetupId(to, 2);
     
     REQUIRE_CALL(from, Lock());
     REQUIRE_CALL(to, Lock());
@@ -126,25 +127,29 @@ TEST(TransactionTest, DebitReturnsFalseWhenInsufficientBalance) {
     
     ALLOW_CALL(acc, GetBalance()).RETURN(50);
     
-    EXPECT_FALSE(t.Debit(acc, 100));
+    struct T : Transaction { using Transaction::Debit; };
+    T t2;
+    EXPECT_FALSE(t2.Debit(acc, 100));
 }
 
 TEST(TransactionTest, DebitReturnsTrueWhenSufficientBalance) {
     MockAccount acc(1, 200);
-    TestableTransaction t;
     
     ALLOW_CALL(acc, GetBalance()).RETURN(200);
     REQUIRE_CALL(acc, ChangeBalance(-100));
     
+    struct T : Transaction { using Transaction::Debit; };
+    T t;
     EXPECT_TRUE(t.Debit(acc, 100));
 }
 
 TEST(TransactionTest, CreditChangesBalance) {
     MockAccount acc(1, 100);
-    TestableTransaction t;
     
     REQUIRE_CALL(acc, ChangeBalance(50));
     
+    struct T : Transaction { using Transaction::Credit; };
+    T t;
     t.Credit(acc, 50);
 }
 
