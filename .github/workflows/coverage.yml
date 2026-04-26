@@ -17,6 +17,7 @@ jobs:
     
     - name: Configure with coverage
       run: |
+        rm -rf build
         cmake -B build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage"
     
     - name: Build
@@ -30,17 +31,11 @@ jobs:
       run: |
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_account.cpp' '*/test_transaction.cpp' '*/Account.h' '*/Transaction.h' --output-file coverage.info --ignore-errors unused
-        lcov --remove coverage.info '*/CMakeFiles/*' '*/CompilerIdCXX/*' '*/CompilerIdC/*' --output-file coverage.info --ignore-errors unused
+        lcov --remove coverage.info '*/_deps/*' '*/usr/*' '*/test_*' '*/include/*' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
     - name: Upload to Coveralls
       run: |
-        mkdir -p build/CMakeFiles/3.31.6/CompilerIdCXX build/CMakeFiles/3.31.6/CompilerIdC
-        touch build/CMakeFiles/3.31.6/CompilerIdCXX/CMakeCXXCompilerId.cpp
-        touch build/CMakeFiles/3.31.6/CompilerIdC/CMakeCCompilerId.c
-        touch build/CMakeCXXCompilerId.cpp
-        touch build/CMakeCCompilerId.c
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include --exclude '*.gcda' --exclude '*.gcno'
+        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include --exclude '*.h'
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
