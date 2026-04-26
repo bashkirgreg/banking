@@ -29,12 +29,12 @@ jobs:
     - name: Collect coverage
       run: |
         cd build
-        lcov --capture --directory . --output-file coverage.info
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' --output-file coverage.info
+        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
+        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_account.cpp' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
     - name: Upload to Coveralls
       run: |
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test
+        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
