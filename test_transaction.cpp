@@ -93,6 +93,7 @@ TEST(TransactionTest, MakeFailsWhenNotEnoughBalance) {
     
     REQUIRE_CALL(to, ChangeBalance(200));
     REQUIRE_CALL(to, GetBalance()).RETURN(50);
+    REQUIRE_CALL(to, ChangeBalance(-200));
     
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
@@ -113,12 +114,13 @@ TEST(TransactionTest, SaveToDataBaseIsCalled) {
     
     REQUIRE_CALL(from, Lock());
     REQUIRE_CALL(to, Lock());
-    ALLOW_CALL(to, ChangeBalance(trompeloeil::_));
+    REQUIRE_CALL(to, ChangeBalance(100));
     ALLOW_CALL(to, GetBalance()).RETURN(500);
+    REQUIRE_CALL(to, ChangeBalance(-101));
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    REQUIRE_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, 101)).TIMES(1);
+    REQUIRE_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, 100)).TIMES(1);
     
     t.set_fee(1);
     t.Make(from, to, 100);
