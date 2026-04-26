@@ -31,13 +31,16 @@ jobs:
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
         lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_account.cpp' '*/test_transaction.cpp' --output-file coverage.info --ignore-errors unused
-        lcov --remove coverage.info '*/CMakeCXXCompilerId.cpp' '*/CMakeCCompilerId.c' '*/CMakeDetermineCompilerABI_CXX.bin' '*/CMakeDetermineCompilerABI_C.bin' --output-file coverage.info --ignore-errors unused
+        lcov --remove coverage.info '*/CMakeFiles/*' '*/CompilerIdCXX/*' '*/CompilerIdC/*' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
     - name: Upload to Coveralls
       run: |
-        # Удаляем проблемный файл если он существует
-        rm -f build/CMakeCXXCompilerId.cpp build/CMakeCCompilerId.c 2>/dev/null || true
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include --exclude '*.gcda' --exclude '*.gcno'
+        mkdir -p build/CMakeFiles/3.31.6/CompilerIdCXX build/CMakeFiles/3.31.6/CompilerIdC
+        touch build/CMakeFiles/3.31.6/CompilerIdCXX/CMakeCXXCompilerId.cpp
+        touch build/CMakeFiles/3.31.6/CompilerIdC/CMakeCCompilerId.c
+        touch build/CMakeCXXCompilerId.cpp
+        touch build/CMakeCCompilerId.c
+        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
