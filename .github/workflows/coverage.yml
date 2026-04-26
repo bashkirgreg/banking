@@ -13,7 +13,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y lcov
-        pip install --user cpp-coveralls
+        pip install --user gcovr
     
     - name: Configure with coverage
       run: |
@@ -27,19 +27,9 @@ jobs:
       working-directory: build
       run: ctest
     
-    - name: Collect coverage
-      run: |
-        cd build
-        # Удаляем всё, кроме нашего кода
-        rm -rf _deps
-        rm -rf CMakeFiles
-        rm -f *.gcda *.gcno
-        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '*/usr/*' '*/test_*' --output-file coverage.info --ignore-errors unused
-        lcov --list coverage.info
-    
     - name: Upload to Coveralls
       run: |
-        coveralls --gcov-options '\-lp' --build-root build
+        gcovr --root . --build-directory build --exclude '_deps' --exclude 'test_' --exclude '/usr' --gcov-ignore-parse-errors --print-summary
+        gcovr --root . --build-directory build --exclude '_deps' --exclude 'test_' --exclude '/usr' --gcov-ignore-parse-errors --coveralls-json --output coverage.json
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
