@@ -8,7 +8,7 @@ class Account {
   virtual void ChangeBalance(int diff);
   virtual void Lock();
   virtual void Unlock();
-  int id() const { return id_; }
+  virtual int id() const { return id_; }
 
  private:
   int id_;
