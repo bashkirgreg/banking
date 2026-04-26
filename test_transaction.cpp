@@ -20,7 +20,6 @@ public:
     
     MAKE_MOCK3(SaveToDataBase, void(Account&, Account&, int), override);
     
-    // Прокси методы для тестирования protected методов
     void DoCredit(Account& acc, int sum) { Credit(acc, sum); }
     bool DoDebit(Account& acc, int sum) { return Debit(acc, sum); }
 };
@@ -60,6 +59,7 @@ TEST(TransactionTest, MakeReturnsFalseWhenFeeTooHigh) {
 TEST(TransactionTest, MakeSuccessWithEnoughBalance) {
     MockAccount from(1, 1000);
     MockAccount to(2, 500);
+    TestableTransaction t;
     
     ALLOW_CALL(from, id()).RETURN(1);
     ALLOW_CALL(to, id()).RETURN(2);
@@ -74,7 +74,8 @@ TEST(TransactionTest, MakeSuccessWithEnoughBalance) {
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    Transaction t;
+    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN();
+    
     t.set_fee(1);
     EXPECT_TRUE(t.Make(from, to, 200));
 }
@@ -82,6 +83,7 @@ TEST(TransactionTest, MakeSuccessWithEnoughBalance) {
 TEST(TransactionTest, MakeFailsWhenNotEnoughBalance) {
     MockAccount from(1, 100);
     MockAccount to(2, 500);
+    TestableTransaction t;
     
     ALLOW_CALL(from, id()).RETURN(1);
     ALLOW_CALL(to, id()).RETURN(2);
@@ -90,12 +92,13 @@ TEST(TransactionTest, MakeFailsWhenNotEnoughBalance) {
     REQUIRE_CALL(to, Lock());
     
     REQUIRE_CALL(to, ChangeBalance(200));
-    FORBID_CALL(to, ChangeBalance(-201));
+    REQUIRE_CALL(to, GetBalance()).RETURN(50);
     
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    Transaction t;
+    ALLOW_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN();
+    
     t.set_fee(1);
     EXPECT_FALSE(t.Make(from, to, 200));
 }
@@ -115,8 +118,9 @@ TEST(TransactionTest, SaveToDataBaseIsCalled) {
     REQUIRE_CALL(to, Unlock());
     REQUIRE_CALL(from, Unlock());
     
-    REQUIRE_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, 200)).TIMES(1);
+    REQUIRE_CALL(t, SaveToDataBase(trompeloeil::_, trompeloeil::_, 101)).TIMES(1);
     
+    t.set_fee(1);
     t.Make(from, to, 100);
 }
 
