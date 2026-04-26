@@ -18,24 +18,27 @@ jobs:
     - name: Configure with coverage
       run: |
         rm -rf build
-        cmake -B build -DBUILD_TESTS=ON -DCOVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+        cmake -B build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage"
     
     - name: Build
       run: cmake --build build
     
     - name: Run tests
       working-directory: build
-      run: ctest --verbose
+      run: ctest
     
     - name: Collect coverage
       run: |
         cd build
+        # Удаляем депсы и системные файлы ПЕРЕД сбором покрытия
+        rm -rf _deps
+        rm -f CMakeCXXCompilerId.cpp CMakeCCompilerId.c 2>/dev/null || true
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_*' --output-file coverage.info --ignore-errors unused
+        lcov --remove coverage.info '/usr/*' '*/test_*' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
     - name: Upload to Coveralls
       run: |
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include
+        coveralls --gcov-options '\-lp' --build-root build --exclude /usr/include
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
