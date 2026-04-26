@@ -31,11 +31,11 @@ jobs:
       run: |
         cd build
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
-        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_*' '*/CMakeFiles/*' --output-file coverage.info --ignore-errors unused
+        lcov --remove coverage.info '/usr/*' '*/_deps/*' '*/test_*' --output-file coverage.info --ignore-errors unused
         lcov --list coverage.info
     
     - name: Upload to Coveralls
       run: |
-        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include --exclude CMakeFiles
+        coveralls --gcov-options '\-lp' --build-root build --exclude _deps --exclude test --exclude /usr/include || true
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
